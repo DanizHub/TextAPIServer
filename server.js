@@ -66,6 +66,18 @@ app.post("/upload", upload.single("image"), (req, res) => {
   res.json({ status: "ok", url: imageUrl });
 });
 
+// New route: clear all messages with password
+app.post("/clear", (req, res) => {
+  const { password } = req.body;
+
+  if (password !== PASSWORD) {
+    return res.status(403).json({ error: "Invalid password" });
+  }
+
+  messages.length = 0;
+  res.json({ status: "cleared" });
+});
+
 // Get all messages
 app.get("/messages", (req, res) => {
   res.json(messages);
