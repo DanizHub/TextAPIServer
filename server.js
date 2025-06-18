@@ -10,18 +10,20 @@ app.use(cors());
 app.use(bodyParser.json());
 
 const MAX_MESSAGES = 30;
-const PASSWORD = "42"; // Change this to your desired 2-digit password
+const SEND_PASSWORD = "42";     // Password for sending messages
+const CLEAR_PASSWORD = "0207";  // Separate password for clearing messages
+
 const messages = [];
 
-// Function to add a message and limit to MAX_MESSAGES
+// Function to add a message and keep only the latest MAX_MESSAGES
 function addMessage(type, value) {
   messages.push({ type, value });
   if (messages.length > MAX_MESSAGES) {
-    messages.shift(); // Remove the oldest message
+    messages.shift(); // Remove oldest
   }
 }
 
-// File upload storage configuration
+// File upload configuration
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     const dir = "uploads";
@@ -37,11 +39,11 @@ const upload = multer({ storage });
 
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
-// Handle text messages with password validation
+// Handle sending text
 app.post("/messages", (req, res) => {
   const { text, password } = req.body;
 
-  if (password !== PASSWORD) {
+  if (password !== SEND_PASSWORD) {
     return res.status(403).json({ error: "Invalid password" });
   }
 
@@ -53,11 +55,11 @@ app.post("/messages", (req, res) => {
   res.json({ status: "ok" });
 });
 
-// Handle image upload with password validation
+// Handle uploading image
 app.post("/upload", upload.single("image"), (req, res) => {
   const password = req.body.password;
 
-  if (password !== PASSWORD) {
+  if (password !== SEND_PASSWORD) {
     return res.status(403).json({ error: "Invalid password" });
   }
 
@@ -66,15 +68,15 @@ app.post("/upload", upload.single("image"), (req, res) => {
   res.json({ status: "ok", url: imageUrl });
 });
 
-// New route: clear all messages with password
+// Handle clearing all messages
 app.post("/clear", (req, res) => {
   const { password } = req.body;
 
-  if (password !== PASSWORD) {
-    return res.status(403).json({ error: "Invalid password" });
+  if (password !== CLEAR_PASSWORD) {
+    return res.status(403).json({ error: "Invalid clear password" });
   }
 
-  messages.length = 0;
+  messages.length = 0; // Clear array
   res.json({ status: "cleared" });
 });
 
